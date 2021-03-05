@@ -7,8 +7,8 @@ work_dir = '/Users/marek/Playground/Oxford-IIIT-Pet-Dataset'
 
 dir_annotation = os.path.join(work_dir, 'annotations')
 dir_img = os.path.join(work_dir, 'images')
-dir_trimap = os.path.join(work_dir, 'trimap')
-dir_xml = os.path.join(work_dir, 'xmls')
+dir_trimap = os.path.join(dir_annotation, 'trimaps')
+dir_xml = os.path.join(dir_annotation, 'xmls')
 
 iiit_dataset = OxfordIIITDataset(verbose=True)
 

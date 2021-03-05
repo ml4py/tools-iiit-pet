@@ -131,7 +131,7 @@ class Dataset:
     @dir_trimap.setter
     def dir_trimap(self, p: pathlib.Path) -> None:
         if p is not None and not os.path.exists(p):
-            raise Exception('Directory does not exist')
+            raise Exception('Directory %s does not exist' % p)
 
         self.__dir_trimap = p
 
@@ -142,7 +142,7 @@ class Dataset:
     @dir_xml.setter
     def dir_xml(self, p: pathlib.Path) -> None:
         if p is not None and not os.path.exists(p):
-            raise Exception('Directory does not exist')
+            raise Exception('Directory %s does not exist' % p)
 
         self.__dir_xml = p
 
@@ -153,7 +153,7 @@ class Dataset:
     @file_training.setter
     def file_training(self, f: pathlib.Path) -> None:
         if f is not None and not os.path.isfile(f):
-            raise Exception('Path is not related to regular file')
+            raise Exception('Path %s is not related to regular file' % f)
 
         self.__training_txt = f
 
@@ -164,7 +164,7 @@ class Dataset:
     @file_test.setter
     def file_test(self, f: pathlib.Path) -> None:
         if f is not None and not os.path.isfile(f):
-            raise Exception('Path is not related to regular file')
+            raise Exception('Path %s is not related to regular file' % f)
 
         self.__test_txt = f
 
