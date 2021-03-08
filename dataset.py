@@ -14,7 +14,7 @@ from Types import DatasetType, ImgTransformation, FORMAT, OPENCV_NORM, OPENCV_IM
 from pet import ObjPet, PetFamily
 
 from viewer.hdf5 import ViewerHDF5
-from xfeatures.extractor import VisualFeatureExtrator
+from xfeatures.extractor import VisualFeatureExtractor
 from xfeatures.bow import VisualDictionary
 
 
@@ -701,7 +701,7 @@ class Dataset:
 
         Sys.FUNCTION_TRACE_END()
 
-    def __getDesriptors(self, pets: list, feature_extractor: VisualFeatureExtrator, shape=None) -> (np.ndarray, np.ndarray):
+    def __getDesriptors(self, pets: list, feature_extractor: VisualFeatureExtractor, shape=None) -> (np.ndarray, np.ndarray):
         Sys.FUNCTION_TRACE_BEGIN()
         desc_pet = []
         ndesc_pet = []
@@ -785,7 +785,7 @@ class Dataset:
     def __saveFeatures(self, cats: list, dogs: list, viewer):
         Sys.FUNCTION_TRACE_BEGIN()
 
-        feature_extractor = VisualFeatureExtrator(self.xfeature_type, self.verbose)
+        feature_extractor = VisualFeatureExtractor(self.xfeature_type, self.verbose)
 
         feature_extractor.SIFT_nfeatures = self.SIFT_nfeatures
         feature_extractor.SIFT_nOctaveLayers = self.SIFT_nOctaveLayers

@@ -5,7 +5,7 @@ import cv2 as opencv
 from Types import FeatureExtractorType
 
 
-class VisualFeatureExtrator:
+class VisualFeatureExtractor:
     def __init__(self, type_xfe: FeatureExtractorType = FeatureExtractorType.SURF, verbose=False):
         self.type = type_xfe
         self.extractor = None
