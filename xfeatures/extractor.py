@@ -25,6 +25,16 @@ class VisualFeatureExtractor:
         self.SURF_extended = False
         self.SURF_upright = False
 
+        self.ORB_nfeatures = 500
+        self.ORB_scaleFactor = 1.2
+        self.ORB_nlevels = 8
+        self.ORB_edgeThreshold = 31
+        self.ORB_firstLevel = 0
+        self.ORB_WTA_K = 2
+        self.ORB_scoreType = opencv.ORB_HARRIS_SCORE
+        self.ORB_patchSize = 31
+        self.ORB_fastThreshold = 20
+
     def __del__(self):
         self.reset()
 
@@ -122,6 +132,79 @@ class VisualFeatureExtractor:
     def SURF_upright(self, upright: bool):
         self.__SURF_upright = upright
 
+    #ORB Parameters
+    @property
+    def ORB_nfeatures(self) -> int:
+        return self.__ORB_nfeatures
+
+    @ORB_nfeatures.setter
+    def ORB_nfeatures(self, nfeatures: int):
+        self.__ORB_nfeatures = nfeatures
+
+    @property
+    def ORB_scaleFactor(self) -> float:
+        return self.__ORB_scaleFactor
+
+    @ORB_scaleFactor.setter
+    def ORB_scaleFactor(self, scaleFactor: float):
+        self.__ORB_scaleFactor = scaleFactor
+
+    @property
+    def ORB_nlevels(self) -> int:
+        return self.__ORB_nlevels
+
+    @ORB_nlevels.setter
+    def ORB_nlevels(self, nlevels: int):
+        self.__ORB_nlevels = nlevels
+
+    @property
+    def ORB_edgeThreshold(self) -> int:
+        return self.__ORB_edgeThreshold
+
+    @ORB_edgeThreshold.setter
+    def ORB_edgeThreshold(self, edgeThreshold: int):
+        self.__ORB_edgeThreshold = edgeThreshold
+
+    @property
+    def ORB_firstLevel(self) -> int:
+        return self.__ORB_firstLevel
+
+    @ORB_firstLevel.setter
+    def ORB_firstLevel(self, firstLevel: int):
+        self.__ORB_firstLevel = firstLevel
+
+    @property
+    def ORB_WTA_K(self) -> int:
+        return self.__ORB_WTA_K
+
+    @ORB_WTA_K.setter
+    def ORB_WTA_K(self, WTA_K: int):
+        self.__ORB_WTA_K = WTA_K
+
+    @property
+    def ORB_scoreType(self) -> int:
+        return self.__ORB_scoreType
+
+    @ORB_scoreType.setter
+    def ORB_scoreType(self, scoreType: int):
+        self.__ORB_scoreType = scoreType
+
+    @property
+    def ORB_patchSize(self) -> int:
+        return self.__ORB_patchSize
+
+    @ORB_patchSize.setter
+    def ORB_patchSize(self, patchSize: int):
+        self.__ORB_patchSize = patchSize
+
+    @property
+    def ORB_fastThreshold(self) -> int:
+        return self.__ORB_fastThreshold
+
+    @ORB_fastThreshold.setter
+    def ORB_fastThreshold(self, fastThreshold: int):
+        self.__ORB_fastThreshold = fastThreshold
+
     @property
     def initialized(self) -> bool:
         return self.__initialized
@@ -131,6 +214,8 @@ class VisualFeatureExtractor:
             self.extractor = opencv.xfeatures2d.SURF_create(self.SURF_hessianThreshold, self.SURF_nOctaves, self.SURF_nOctaveLayers, self.SURF_extended, self.SURF_upright)
         elif self.type == FeatureExtractorType.SIFT:
             self.extractor = opencv.xfeatures2d.SIFT_create(self.SIFT_nfeatures, self.SIFT_nOctaveLayers, self.SIFT_contrastThreshold, self.SIFT_edgeThreshold, self.SIFT_sigma)
+        elif self.type == FeatureExtractorType.ORB:
+            self.extractor = opencv.ORB_create()
         else:
             raise Exception('Not supported type of feature extractor')
 
