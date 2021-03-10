@@ -3,7 +3,7 @@ import os
 from dataset import Dataset as OxfordIIITDataset
 from Types import *
 
-work_dir = '/Users/marek/Playground/Oxford-IIIT-Pet-Dataset'
+work_dir = '../dataset-iiit-pet'
 
 dir_annotation = os.path.join(work_dir, 'annotations')
 dir_img = os.path.join(work_dir, 'images')
@@ -25,7 +25,8 @@ iiit_dataset.mode_imread = OPENCV_IMREAD.GRAYSCALE  # reading images as grayscal
 iiit_dataset.img_transformation = ImgTransformation.SCALE_MEDIAN
 iiit_dataset.img_centered = False
 iiit_dataset.extract_features = True
-iiit_dataset.xfeature_type = FeatureExtractorType.SURF
+iiit_dataset.xfeature_type = FeatureExtractorType.ORB
+iiit_dataset.ORB_nfeatures = 300
 
 # export dataaset
 iiit_dataset.file_training = os.path.join(dir_annotation, 'trainval-subset.txt')
