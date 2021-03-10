@@ -211,11 +211,17 @@ class VisualFeatureExtractor:
 
     def __initExtractor(self):
         if self.type == FeatureExtractorType.SURF or FeatureExtractorType.DEFAULT:
-            self.extractor = opencv.xfeatures2d.SURF_create(self.SURF_hessianThreshold, self.SURF_nOctaves, self.SURF_nOctaveLayers, self.SURF_extended, self.SURF_upright)
+            self.extractor = opencv.xfeatures2d.SURF_create(self.SURF_hessianThreshold, self.SURF_nOctaves,
+                                                            self.SURF_nOctaveLayers, self.SURF_extended,
+                                                            self.SURF_upright)
         elif self.type == FeatureExtractorType.SIFT:
-            self.extractor = opencv.xfeatures2d.SIFT_create(self.SIFT_nfeatures, self.SIFT_nOctaveLayers, self.SIFT_contrastThreshold, self.SIFT_edgeThreshold, self.SIFT_sigma)
+            self.extractor = opencv.xfeatures2d.SIFT_create(self.SIFT_nfeatures, self.SIFT_nOctaveLayers,
+                                                            self.SIFT_contrastThreshold, self.SIFT_edgeThreshold,
+                                                            self.SIFT_sigma)
         elif self.type == FeatureExtractorType.ORB:
-            self.extractor = opencv.ORB_create()
+            self.extractor = opencv.ORB_create(self.ORB_nfeatures, self.ORB_scaleFactor, self.ORB_nlevels,
+                                               self.ORB_edgeThreshold, self.ORB_firstLevel, self.ORB_WTA_K,
+                                               self.ORB_scoreType, self.ORB_patchSize, self.ORB_fastThreshold)
         else:
             raise Exception('Not supported type of feature extractor')
 

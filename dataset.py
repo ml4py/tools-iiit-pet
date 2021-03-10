@@ -895,8 +895,6 @@ class Dataset:
         else:
             raise Exception('Not supported type of feature extractor')
 
-
-
         if self.img_transformation.value > -1 and not self.img_shape:
             get_dims = True
         else:
