@@ -1,12 +1,13 @@
 import os
+import pathlib
 
 from dataset import Dataset as OxfordIIITDataset
 from Types import *
 
-work_dir = '../dataset-iiit-pet'
+data_dir = pathlib.Path(os.environ['DATA_DIR'])
 
-dir_annotation = os.path.join(work_dir, 'annotations')
-dir_img = os.path.join(work_dir, 'images')
+dir_annotation = os.path.join(data_dir, 'annotations')
+dir_img = os.path.join(data_dir, 'images')
 dir_trimap = os.path.join(dir_annotation, 'trimaps')
 dir_xml = os.path.join(dir_annotation, 'xmls')
 
@@ -28,7 +29,7 @@ iiit_dataset.extract_features = True
 iiit_dataset.xfeature_type = FeatureExtractorType.ORB
 iiit_dataset.ORB_nfeatures = 300
 
-# export dataaset
+# save dataset to HDF5 file
 iiit_dataset.file_training = os.path.join(dir_annotation, 'trainval-subset.txt')
 iiit_dataset.loadTrainingDataset()
 iiit_dataset.saveTrainingDataset(FORMAT.HDF5)

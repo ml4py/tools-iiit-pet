@@ -60,7 +60,7 @@ class ViewerHDF5:
         i.append(idx)
         return a, i, j, ncols
 
-    def __saveSparseFeaturesDataset(self, rows: list, labels: list, path: pathlib.Path):
+    def __saveSparseFeaturesDataset(self, rows: list, labels: Union[list, np.ndarray], path: pathlib.Path):
         Sys.FUNCTION_TRACE_BEGIN()
         a, i, j, ncols = self.__determineAIJ(rows)
 

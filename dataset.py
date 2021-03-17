@@ -611,7 +611,18 @@ class Dataset:
 
         return shape
 
-    def __getImgs(self, pets, get_mask=False, get_dims=False) -> (list, Union[list, None]):
+    def __createLabelList(self, ncats, ndogs) -> list:
+        if ncats > 0:
+            labels_cat = [PetFamily.CAT.value] * ncats
+        else:
+            labels_cat = []
+        if ndogs > 0:
+            labels_dog = [PetFamily.DOG.value] * ndogs
+        else:
+            labels_dog = []
+        return labels_cat + labels_dog
+
+    def __getImg_ListArray(self, pets, get_mask=False, get_dims=False) -> (list, Union[list, None]):
         dataset = []
         list_rows = []
         list_cols = []
@@ -658,7 +669,7 @@ class Dataset:
             else:
                 self.__imgWrite(dog[0], dog[1], ext, output_dir)
 
-    def __saveImgs(self, cats: list, dogs: list, ext: FORMAT, output_dir: pathlib.Path):
+    def __saveImgs_ImageFileFormat(self, cats: list, dogs: list, ext: FORMAT, output_dir: pathlib.Path):
         Sys.FUNCTION_TRACE_BEGIN()
 
         if self.img_transformation.value > -1 and not self.img_shape:
@@ -671,8 +682,8 @@ class Dataset:
             print('Output directory: %s' % pathlib.Path(output_dir).absolute())
             print('Centered scene: %r' % self.img_centered)
 
-        out_cats = self.__getImgs(cats, get_dims=get_dims)
-        out_dogs = self.__getImgs(dogs, get_dims=get_dims)
+        out_cats = self.__getImg_ListArray(cats, get_dims=get_dims)
+        out_dogs = self.__getImg_ListArray(dogs, get_dims=get_dims)
 
         if get_dims:
             self.img_shape = self.__determineShapeStat(out_cats, out_dogs)
@@ -693,34 +704,15 @@ class Dataset:
         self.__writeImgs(img_cats, img_dogs, ext, output_dir, shape)
         Sys.FUNCTION_TRACE_END()
 
-    def __createLabelList(self, ncats, ndogs) -> list:
-        if ncats > 0:
-            labels_cat = [PetFamily.CAT.value] * ncats
-        else:
-            labels_cat = []
-        if ndogs > 0:
-            labels_dog = [PetFamily.CAT.value] * ndogs
-        else:
-            labels_dog = []
-        return labels_cat + labels_dog
-
-    def __saveImgHDF5(self, cats: list, dogs: list, viewer):
-        # TODO fit all time
+    def __getImg_NumpyArray(self, cats: list, dogs: list) -> (np.ndarray, np.ndarray):
         Sys.FUNCTION_TRACE_BEGIN()
-
         if self.img_transformation.value > -1 and not self.img_shape:
             get_dims = True
         else:
             get_dims = False
 
-        if self.verbose:
-            print('Output directory: %s' % viewer.output_dir)
-            print('Centered scene: %r' % self.img_centered)
-
-        # rows = []
-
-        out_cats = self.__getImgs(cats, get_dims=get_dims)
-        out_dogs = self.__getImgs(dogs, get_dims=get_dims)
+        out_cats = self.__getImg_ListArray(cats, get_dims=get_dims)
+        out_dogs = self.__getImg_ListArray(dogs, get_dims=get_dims)
 
         if get_dims:
             self.img_shape = self.__determineShapeStat(out_cats, out_dogs)
@@ -775,16 +767,32 @@ class Dataset:
         # create labels related to training dataset
         labels = self.__createLabelList(len(img_cats), len(img_dogs))
         np_labels = np.array(labels, dtype=np.float)
-        # save flatten images to HDF5
-        viewer.feature_type = FeaturesType.DENSE
-        viewer.save(rows, np_labels)
 
-        del rows, labels
         del out_cats, out_dogs
+        del labels
 
         Sys.FUNCTION_TRACE_END()
 
-    def __getDesriptors(self, pets: list, feature_extractor: VisualFeatureExtractor, shape=None) -> (np.ndarray, np.ndarray):
+        return rows, np_labels
+
+    def __saveImg_HDF5(self, cats: list, dogs: list, viewer):
+        # TODO fit all time
+        Sys.FUNCTION_TRACE_BEGIN()
+
+        if self.verbose:
+            print('Output directory: %s' % viewer.output_dir)
+            print('Centered scene: %r' % self.img_centered)
+
+        # save flatten images to HDF5
+        rows, labels = self.__getImg_NumpyArray(cats, dogs)
+        viewer.feature_type = FeaturesType.DENSE
+        viewer.save(rows, labels)
+
+        del rows, labels
+
+        Sys.FUNCTION_TRACE_END()
+
+    def __extractFeatures_getDescriptors(self, pets: list, feature_extractor: VisualFeatureExtractor, shape=None) -> (np.ndarray, np.ndarray):
         Sys.FUNCTION_TRACE_BEGIN()
         desc_pet = []
         ndesc_pet = []
@@ -865,9 +873,8 @@ class Dataset:
 
         return rows
 
-    def __saveFeatures(self, cats: list, dogs: list, viewer):
+    def __extractFeatures_Get(self, cats: list, dogs: list) -> (list, list):
         Sys.FUNCTION_TRACE_BEGIN()
-
         feature_extractor = VisualFeatureExtractor(self.xfeature_type, self.verbose)
 
         if self.xfeature_type == FeatureExtractorType.SURF or FeatureExtractorType.DEFAULT:
@@ -900,12 +907,8 @@ class Dataset:
         else:
             get_dims = False
 
-        if self.verbose:
-            print('Output directory: %s' % viewer.output_dir)
-            print('Centered scene: %r' % self.img_centered)
-
-        out_cats = self.__getImgs(cats, get_dims=get_dims, get_mask=True)
-        out_dogs = self.__getImgs(dogs, get_dims=get_dims, get_mask=True)
+        out_cats = self.__getImg_ListArray(cats, get_dims=get_dims, get_mask=True)
+        out_dogs = self.__getImg_ListArray(dogs, get_dims=get_dims, get_mask=True)
 
         if get_dims:
             self.img_shape = self.__determineShapeStat(out_cats, out_dogs)
@@ -926,25 +929,58 @@ class Dataset:
             print('Feature extrator type: %s' % self.xfeature_type.name)  # TODO print params
 
         # obtain descriptors related to images
-        desc_cat, ndesc_cat = self.__getDesriptors(img_cats, feature_extractor, shape)
-        desc_dog, ndesc_dog = self.__getDesriptors(img_dogs, feature_extractor, shape)
+        desc_cat, ndesc_cat = self.__extractFeatures_getDescriptors(img_cats, feature_extractor, shape)
+        desc_dog, ndesc_dog = self.__extractFeatures_getDescriptors(img_dogs, feature_extractor, shape)
 
         # extract features
         rows = self.__extractFeatures_TrainFit(desc_cat, ndesc_cat, desc_dog, ndesc_dog)
         # create list of labels
         labels = self.__createLabelList(ndesc_cat.shape[0], ndesc_dog.shape[0])
-
-        # save result to HDF5
-        viewer.output_dir = self.output_dir
-        viewer.save(rows, labels, mat_type=FeaturesType.SPARSE)
+        np_labels = np.array(labels, dtype=np.float)
 
         # clean memory
         del desc_cat, ndesc_cat
         del desc_dog, ndesc_dog
         del out_cats, out_dogs
-        del rows, labels
+        del labels
 
         Sys.FUNCTION_TRACE_END()
+
+        return rows, np_labels
+
+    def __extractFeatures_Save(self, cats: list, dogs: list, viewer):
+        Sys.FUNCTION_TRACE_BEGIN()
+
+        # save result to HDF5
+        rows, labels = self.__extractFeatures_Get(cats, dogs)
+        viewer.output_dir = self.output_dir
+        viewer.save(rows, labels, mat_type=FeaturesType.SPARSE)
+
+        Sys.FUNCTION_TRACE_END()
+
+    def getTrainingDataset(self) -> (Union[list, np.ndarray], np.ndarray):
+        Sys.FUNCTION_TRACE_BEGIN()
+        del self.img_shape
+        self.img_shape = None
+
+        if self.extract_features:
+            self.__cbtrained = False
+            rows, labels = self.__extractFeatures_Get(self.__cats_training, self.__dogs_training)
+        else:
+            rows, labels = self.__getImg_NumpyArray(self.__cats_training, self.__dogs_training)
+        Sys.FUNCTION_TRACE_END()
+
+        return rows, labels
+
+    def getTestDataset(self) -> (Union[list, np.ndarray], np.ndarray):
+        Sys.FUNCTION_TRACE_BEGIN()
+        if self.extract_features:
+            rows, labels = self.__extractFeatures_Get(self.__cats_test, self.__dogs_test)
+        else:
+            rows, labels = self.__getImg_NumpyArray(self.__cats_test, self.__dogs_test)
+        Sys.FUNCTION_TRACE_END()
+
+        return rows, labels
 
     def saveTrainingDataset(self, ext=FORMAT.HDF5):
         Sys.FUNCTION_TRACE_BEGIN()
@@ -958,14 +994,15 @@ class Dataset:
             viewer_h5.basename = DatasetType.TRAINING.value
 
             if self.extract_features:
-                self.__saveFeatures(self.__cats_training, self.__dogs_training, viewer_h5)
+                self.__cbtrained = False
+                self.__extractFeatures_Save(self.__cats_training, self.__dogs_training, viewer_h5)
             else:
-                self.__saveImgHDF5(self.__cats_training, self.__dogs_training, viewer_h5)
+                self.__saveImg_HDF5(self.__cats_training, self.__dogs_training, viewer_h5)
 
             del viewer_h5
         else:
             output_dir = self.__mkdirOutput(DatasetType.TRAINING)
-            self.__saveImgs(self.__cats_training, self.__dogs_training, ext, output_dir)
+            self.__saveImgs_ImageFileFormat(self.__cats_training, self.__dogs_training, ext, output_dir)
 
         Sys.FUNCTION_TRACE_END()
 
@@ -978,14 +1015,14 @@ class Dataset:
             viewer_h5.basename = DatasetType.TEST.value
 
             if self.extract_features:
-                self.__saveFeatures(self.__cats_test, self.__dogs_test, viewer_h5)
+                self.__extractFeatures_Save(self.__cats_test, self.__dogs_test, viewer_h5)
             else:
-                self.__saveImgHDF5(self.__cats_test, self.__dogs_test, viewer_h5)
+                self.__saveImg_HDF5(self.__cats_test, self.__dogs_test, viewer_h5)
 
             del viewer_h5
         else:
             output_dir = self.__mkdirOutput(DatasetType.TEST)
-            self.__saveImgs(self.__cats_test, self.__dogs_test, ext, output_dir)
+            self.__saveImgs_ImageFileFormat(self.__cats_test, self.__dogs_test, ext, output_dir)
 
         Sys.FUNCTION_TRACE_END()
 
@@ -1002,4 +1039,4 @@ class Dataset:
 # TODO verbose (partially)
 # TODO set name of test file
 # TODO check if dataset is loaded
-# TODO save sparse dataset compatibile with matlab
+# TODO save sparse dataset compatible with matlab
