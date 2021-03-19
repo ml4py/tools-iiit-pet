@@ -10,6 +10,7 @@ class VisualDictionary:
     def __init__(self, features: np.ndarray = None, verbose=False):
         self.training_features = features
         self.codebook_size = 64  # TODO default
+        self.codebook_normalize = False
 
         self.__codebook = None
         self.__codebook_tree = None
@@ -42,6 +43,14 @@ class VisualDictionary:
     def codebook_size(self, size: int):
         self.__codebook_size = size
 
+    @property
+    def codebook_normalize(self) -> bool:
+        return self.__codebook_normalize
+
+    @codebook_normalize.setter
+    def codebook_normalize(self, normalize: bool):
+        self.__codebook_normalize = normalize
+
     def train(self):
         if self.__traincalled:
             return
@@ -61,7 +70,10 @@ class VisualDictionary:
             self.train()
 
         _, idx = self.__codebook_tree.query(features)
-        codeword, _ = np.histogram(idx, bins=self.codebook_size + 1, range=(0, self.codebook_size))
+        codeword, _ = np.histogram(idx, bins=self.codebook_size, range=(0, self.codebook_size))
+
+        if self.codebook_normalize:
+            codeword = codeword / np.sum(codeword)
 
         return codeword
 
