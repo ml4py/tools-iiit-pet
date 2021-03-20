@@ -49,6 +49,7 @@ class Dataset:
         self.xfeature_type = FeatureExtractorType.DEFAULT
         self.__visual_dictionary = None
         self.__codebook_size = 64  # TODO default value
+        self.__codebook_normalize = False
         self.__cbtrained = False
 
         self.SIFT_nfeatures = 0
@@ -265,6 +266,14 @@ class Dataset:
     @xfeature_codebook_size.setter
     def xfeature_codebook_size(self, size: int):
         self.__codebook_size = size
+
+    @property
+    def xfeature_codebook_normalize(self) -> bool:
+        return self.__codebook_normalize
+
+    @xfeature_codebook_normalize.setter
+    def xfeature_codebook_normalize(self, normalize: bool):
+        self.__codebook_normalize = normalize
 
     @property
     def img_roi(self) -> ROI:
@@ -834,6 +843,7 @@ class Dataset:
 
         self.__visual_dictionary.training_features = descriptors
         self.__visual_dictionary.codebook_size = self.xfeature_codebook_size
+        self.__visual_dictionary.codebook_normalize = self.xfeature_codebook_normalize
         self.__visual_dictionary.train()  # TODO or fit?
 
         self.__cbtrained = True
