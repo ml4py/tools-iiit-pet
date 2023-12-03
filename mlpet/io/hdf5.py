@@ -1,46 +1,57 @@
 import os
 import pathlib
-from typing import Union
 
 import numpy as np
 import h5py
 import hdf5storage as h5storage
 
-import Sys
-from Types import FeaturesType
+import mlpet.utils.sys as mlsys
+
+from typing import Union
+from mlpet.utils.types import FeaturesType
 
 
 class ViewerHDF5:
+
     def __init__(self):
+
         self.output_dir = None
         self.basename = None
         self.feature_type = FeaturesType.SPARSE
 
     @property
     def output_dir(self) -> pathlib.Path:
+
         return self.__dir_output
 
     @output_dir.setter
-    def output_dir(self, dir: pathlib.Path):
+    def output_dir(self, dir: pathlib.Path) -> None:
+
         self.__dir_output = dir
 
     @property
     def basename(self) -> str:
+
         return self.__filename
 
     @basename.setter
-    def basename(self, f: str):
+    def basename(self, f: str) -> None:
+
         self.__filename = f
 
     @property
     def feature_type(self) -> FeaturesType:
+
         return self.__feature_type
 
     @feature_type.setter
-    def feature_type(self, f: FeaturesType):
+    def feature_type(self, f: FeaturesType) -> None:
+
         self.__feature_type = f
 
-    def __determineAIJ(self, rows: list):
+    @staticmethod
+    def __determineAIJ(rows: list):
+
         ncols = 0
         a = np.empty(shape=(0,))
         i = []
@@ -54,14 +65,14 @@ class ViewerHDF5:
             j = np.append(j, c)
             a = np.append(a, row[c])
 
-            if len(row) > ncols:
-                ncols = len(row)
+            if len(row) > ncols: ncols = len(row)
             idx += np.shape(c)[1]
         i.append(idx)
         return a, i, j, ncols
 
-    def __saveSparseFeaturesDataset(self, rows: list, labels: Union[list, np.ndarray], path: pathlib.Path):
-        Sys.FUNCTION_TRACE_BEGIN()
+    def __saveSparseFeaturesDataset(self, rows: list, labels: Union[list, np.ndarray], path: pathlib.Path) -> None:
+
+        mlsys.FUNCTION_TRACE_BEGIN()
         a, i, j, ncols = self.__determineAIJ(rows)
 
         if self.output_dir is not None and not os.path.exists(self.output_dir):
@@ -79,19 +90,20 @@ class ViewerHDF5:
         h5_file.close()
 
         del a, i, j
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
-    def __saveDenseFeaturesDataset(self, rows: np.ndarray, labels: np.ndarray, path):
-        Sys.FUNCTION_TRACE_BEGIN()
-        content = {}
-        content['X'] = rows
-        content['y'] = labels
+    @staticmethod
+    def __saveDenseFeaturesDataset(rows: np.ndarray, labels: np.ndarray, path: pathlib.Path) -> None:
+
+        mlsys.FUNCTION_TRACE_BEGIN()
+        content = {'X': rows, 'y': labels}
         # this is extremely slow and memory consuming
         h5storage.write(content, filename=path,  matlab_compatible=True, store_python_metadata=False)
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
-    def save(self, rows: Union[list, np.ndarray], labels: Union[list, np.ndarray], mat_type=FeaturesType.DENSE):
-        Sys.FUNCTION_TRACE_BEGIN()
+    def save(self, rows: Union[list, np.ndarray], labels: Union[list, np.ndarray], mat_type=FeaturesType.DENSE) -> None:
+
+        mlsys.FUNCTION_TRACE_BEGIN()
         if self.output_dir is not None and not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
@@ -102,8 +114,7 @@ class ViewerHDF5:
             path = file
 
         if mat_type == FeaturesType.DENSE:
-            self.__saveDenseFeaturesDataset(rows, labels, path)
+            self.__saveDenseFeaturesDataset(rows, labels, pathlib.Path(path))
         else:
-            self.__saveSparseFeaturesDataset(rows, labels, path)
-        Sys.FUNCTION_TRACE_END()
-# TODO dense matrix
+            self.__saveSparseFeaturesDataset(rows, labels, pathlib.Path(path))
+        mlsys.FUNCTION_TRACE_END()

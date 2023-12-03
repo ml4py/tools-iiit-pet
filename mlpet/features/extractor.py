@@ -1,12 +1,16 @@
-import numpy as np
+# import utils
+from mlpet.utils.types import FeatureExtractorType
+from mlpet.utils.functools import lazy_import
 
-import cv2 as opencv
-
-from Types import FeatureExtractorType
+# lazy imports
+opencv = lazy_import('cv2')
+np = lazy_import('numpy')
 
 
 class VisualFeatureExtractor:
+
     def __init__(self, type_xfe: FeatureExtractorType = FeatureExtractorType.SURF, verbose=False):
+
         self.type = type_xfe
         self.extractor = None
 
@@ -50,7 +54,10 @@ class VisualFeatureExtractor:
     def type(self, type_xfe: FeatureExtractorType):
         self.__type_xfe = type_xfe
 
-    #SIFT Parameters
+    """
+    SIFT Parameters
+    """
+
     @property
     def SIFT_nfeatures(self) -> int:
         return self.__SIFT_nfeatures
@@ -91,7 +98,10 @@ class VisualFeatureExtractor:
     def SIFT_sigma(self, sigma: float):
         self.__SIFT_sigma = sigma
 
-    #SURF Parameters
+    """
+    SURF Parameters
+    """
+
     @property
     def SURF_hessianThreshold(self) -> float:
         return self.__SURF_hessianThreshold
@@ -132,7 +142,10 @@ class VisualFeatureExtractor:
     def SURF_upright(self, upright: bool):
         self.__SURF_upright = upright
 
-    #ORB Parameters
+    """
+    ORB Parameters
+    """
+
     @property
     def ORB_nfeatures(self) -> int:
         return self.__ORB_nfeatures

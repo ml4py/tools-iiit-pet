@@ -2,24 +2,31 @@ import csv
 import glob
 import os
 import pathlib
+
+import mlpet.utils.sys as mlsys
+
 from typing import Union
 
-import cv2 as opencv
-import numpy as np
+from mlpet.data.pet import ObjPet, PetFamily
+from mlpet.io.hdf5 import ViewerHDF5
 
-import Sys
+from mlpet.features.extractor import VisualFeatureExtractor
+from mlpet.features.bow import VisualDictionary
 
-from Types import DatasetType, ImgTransformation, FORMAT, OPENCV_NORM, OPENCV_IMREAD, ROI, imgIsColored, FeatureExtractorType, \
-    vstackNumpyArrays, FeaturesType
-from pet import ObjPet, PetFamily
+# import utils
+from mlpet.utils.functools import lazy_import
+from mlpet.utils.types import DatasetType, FORMAT, ImgTransformation, imgIsColored, OPENCV_NORM, OPENCV_IMREAD, ROI
+from mlpet.utils.types import FeatureExtractorType, FeaturesType, vstackNumpyArrays
 
-from viewer.hdf5 import ViewerHDF5
-from xfeatures.extractor import VisualFeatureExtractor
-from xfeatures.bow import VisualDictionary
+# lazy imports
+opencv = lazy_import('cv2')
+np = lazy_import('numpy')
 
 
-class Dataset:
+class Dataset(object):
+
     def __init__(self, dir_img=None, dir_trimap=None, dir_xml=None, file_training=None, file_test=None, verbose=False):
+
         # training dataset
         self.__cats_training = []
         self.__dogs_training = []
@@ -77,6 +84,7 @@ class Dataset:
         self.verbose = verbose
 
     def __del__(self):
+
         del self.__cats_training
         del self.__dogs_training
 
@@ -89,222 +97,285 @@ class Dataset:
 
     @property
     def extract_features(self) -> bool:
+
         return self.__extract_features
 
     @extract_features.setter
     def extract_features(self, f: bool):
+
         self.__extract_features = f
 
     # TODO change name
     @property
     def xfeature_type(self) -> FeatureExtractorType:
+
         return self.__feature_extractor_type
 
     @xfeature_type.setter
     def xfeature_type(self, xtype: FeatureExtractorType):
+
         self.__feature_extractor_type = xtype
 
-    #SIFT Parameters
+    """
+    SIFT Parameters
+    """
+
     @property
     def SIFT_nfeatures(self) -> int:
+
         return self.__SIFT_nfeatures
 
     @SIFT_nfeatures.setter
     def SIFT_nfeatures(self, nfeatures: int):
+
         self.__SIFT_nfeatures = nfeatures
 
     @property
     def SIFT_nOctaveLayers(self) -> int:
+
         return self.__SIFT_nOctaveLayers
 
     @SIFT_nOctaveLayers.setter
     def SIFT_nOctaveLayers(self, nOctaveLayers: int):
+
         self.__SIFT_nOctaveLayers = nOctaveLayers
 
     @property
     def SIFT_contrastThreshold(self) -> float:
+
         return self.__SIFT_contrastThreshold
 
     @SIFT_contrastThreshold.setter
     def SIFT_contrastThreshold(self, contrastThreshold: float):
+
         self.__SIFT_contrastThreshold = contrastThreshold
 
     @property
     def SIFT_edgeThreshold(self) -> int:
+
         return self.__SIFT_edgeThreshold
 
     @SIFT_edgeThreshold.setter
     def SIFT_edgeThreshold(self, edgeThreshold: int):
+
         self.__SIFT_edgeThreshold = edgeThreshold
 
     @property
     def SIFT_sigma(self) -> float:
+
         return self.__SIFT_sigma
 
     @SIFT_sigma.setter
     def SIFT_sigma(self, sigma: float):
+
         self.__SIFT_sigma = sigma
 
-    #SURF Parameters
+    """
+    SURF Parameters
+    """
+
     @property
     def SURF_hessianThreshold(self) -> float:
+
         return self.__SURF_hessianThreshold
 
     @SURF_hessianThreshold.setter
     def SURF_hessianThreshold(self, hessianThreshold: float):
+
         self.__SURF_hessianThreshold = hessianThreshold
 
     @property
     def SURF_nOctaves(self) -> int:
+
         return self.__SURF_nOctaves
 
     @SURF_nOctaves.setter
     def SURF_nOctaves(self, nOctaves: int):
+
         self.__SURF_nOctaves = nOctaves
 
     @property
     def SURF_nOctaveLayers(self) -> int:
+
         return self.__SURF_nOctaveLayers
 
     @SURF_nOctaveLayers.setter
     def SURF_nOctaveLayers(self, nOctaveLayers: int):
+
         self.__SURF_nOctaveLayers = nOctaveLayers
 
     @property
     def SURF_extended(self) -> bool:
+
         return self.__SURF_extended
 
     @SURF_extended.setter
     def SURF_extended(self, extended: bool):
+
         self.__SURF_extended = extended
 
     @property
     def SURF_upright(self) -> bool:
+
         return self.__SURF_upright
 
     @SURF_upright.setter
     def SURF_upright(self, upright: bool):
+
         self.__SURF_upright = upright
 
-    #ORB Parameters
+    """
+    ORB Parameters
+    """
+
     @property
     def ORB_nfeatures(self) -> int:
+
         return self.__ORB_nfeatures
 
     @ORB_nfeatures.setter
     def ORB_nfeatures(self, nfeatures: int):
+
         self.__ORB_nfeatures = nfeatures
 
     @property
     def ORB_scaleFactor(self) -> float:
+
         return self.__ORB_scaleFactor
 
     @ORB_scaleFactor.setter
     def ORB_scaleFactor(self, scaleFactor: float):
+
         self.__ORB_scaleFactor = scaleFactor
 
     @property
     def ORB_nlevels(self) -> int:
+
         return self.__ORB_nlevels
 
     @ORB_nlevels.setter
     def ORB_nlevels(self, nlevels: int):
+
         self.__ORB_nlevels = nlevels
 
     @property
     def ORB_edgeThreshold(self) -> int:
+
         return self.__ORB_edgeThreshold
 
     @ORB_edgeThreshold.setter
     def ORB_edgeThreshold(self, edgeThreshold: int):
+
         self.__ORB_edgeThreshold = edgeThreshold
 
     @property
     def ORB_firstLevel(self) -> int:
+
         return self.__ORB_firstLevel
 
     @ORB_firstLevel.setter
     def ORB_firstLevel(self, firstLevel: int):
+
         self.__ORB_firstLevel = firstLevel
 
     @property
     def ORB_WTA_K(self) -> int:
+
         return self.__ORB_WTA_K
 
     @ORB_WTA_K.setter
     def ORB_WTA_K(self, WTA_K: int):
+
         self.__ORB_WTA_K = WTA_K
 
     @property
     def ORB_scoreType(self) -> int:
+
         return self.__ORB_scoreType
 
     @ORB_scoreType.setter
     def ORB_scoreType(self, scoreType: int):
+
         self.__ORB_scoreType = scoreType
 
     @property
     def ORB_patchSize(self) -> int:
+
         return self.__ORB_patchSize
 
     @ORB_patchSize.setter
     def ORB_patchSize(self, patchSize: int):
+
         self.__ORB_patchSize = patchSize
 
     @property
     def ORB_fastThreshold(self) -> int:
+
         return self.__ORB_fastThreshold
 
     @ORB_fastThreshold.setter
     def ORB_fastThreshold(self, fastThreshold: int):
+
         self.__ORB_fastThreshold = fastThreshold
 
     @property
     def xfeature_codebook_size(self) -> int:
+
         return self.__codebook_size
 
     @xfeature_codebook_size.setter
     def xfeature_codebook_size(self, size: int):
+
         self.__codebook_size = size
 
     @property
     def xfeature_codebook_normalize(self) -> bool:
+
         return self.__codebook_normalize
 
     @xfeature_codebook_normalize.setter
     def xfeature_codebook_normalize(self, normalize: bool):
+
         self.__codebook_normalize = normalize
 
     @property
     def img_roi(self) -> ROI:
+
         return self.__img_roi
 
     @img_roi.setter
     def img_roi(self, roi):
+
         self.__img_roi = roi
 
     @property
     def extract_foreground(self) -> bool:
+
         return self.__extract_foreground
 
     @extract_foreground.setter
     def extract_foreground(self, f: bool):
+
         self.__extract_foreground = f
 
     @property
     def fg_include_border(self) -> bool:
+
         return self.__fg_border
 
     @fg_include_border.setter
     def fg_include_border(self, flag: bool):
+
         self.__fg_border = flag
 
     @property
     def dir_img(self) -> pathlib.Path:
+
         return self.__dir_img
 
     @dir_img.setter
     def dir_img(self, p: pathlib.Path) -> None:
+
         if p is not None and not os.path.exists(p):
             raise Exception('Directory %s does not exist' % p)
 
@@ -312,10 +383,12 @@ class Dataset:
 
     @property
     def dir_trimap(self) -> pathlib.Path:
+
         return self.__dir_trimap
 
     @dir_trimap.setter
     def dir_trimap(self, p: pathlib.Path) -> None:
+
         if p is not None and not os.path.exists(p):
             raise Exception('Directory %s does not exist' % p)
 
@@ -323,10 +396,12 @@ class Dataset:
 
     @property
     def dir_xml(self) -> pathlib.Path:
+
         return self.__dir_xml
 
     @dir_xml.setter
     def dir_xml(self, p: pathlib.Path) -> None:
+
         if p is not None and not os.path.exists(p):
             raise Exception('Directory %s does not exist' % p)
 
@@ -334,10 +409,12 @@ class Dataset:
 
     @property
     def file_training(self) -> pathlib.Path:
+
         return self.__training_txt
 
     @file_training.setter
     def file_training(self, f: pathlib.Path) -> None:
+
         if f is not None and not os.path.isfile(f):
             raise Exception('Path %s is not related to regular file' % f)
 
@@ -345,10 +422,12 @@ class Dataset:
 
     @property
     def file_test(self) -> pathlib.Path:
+
         return self.__test_txt
 
     @file_test.setter
     def file_test(self, f: pathlib.Path) -> None:
+
         if f is not None and not os.path.isfile(f):
             raise Exception('Path %s is not related to regular file' % f)
 
@@ -356,50 +435,62 @@ class Dataset:
 
     @property
     def mode_imread(self) -> OPENCV_IMREAD:
+
         return self.__opencv_imread
 
     @mode_imread.setter
     def mode_imread(self, f: OPENCV_IMREAD):
+
         self.__opencv_imread = f
 
     @property
     def output_dir(self) -> pathlib.Path:
+
         return self.__output_dir
 
     @output_dir.setter
     def output_dir(self, p: pathlib.Path):
+
         self.__output_dir = p
 
     @property
     def img_transformation(self) -> ImgTransformation:
+
         return self.__img_transformation
 
     @img_transformation.setter
     def img_transformation(self, f: ImgTransformation):
+
         self.__img_transformation = f
 
     @property
     def img_centered(self) -> bool:
+
         return self.__img_centered
 
     @img_centered.setter
     def img_centered(self, f: bool):
+
         self.__img_centered = f
 
     @property
     def img_shape(self) -> list:
+
         return self.__img_shape
 
     @img_shape.setter
     def img_shape(self, shape: list):
+
         self.__img_shape = shape
 
     @img_shape.deleter
     def img_shape(self):
+
         del self.__img_shape
         self.__img_shape = None
 
     def scaleImgsValues(self, v: float):
+
         for cat in self.__cats_training:
             cat.scale(v)
 
@@ -407,6 +498,7 @@ class Dataset:
             dog.scale(v)
 
     def normalizeImgs(self, norm_type: OPENCV_NORM):
+
         if not self.__cats_training:
             print('Warning: list of cats is empty')
             return
@@ -422,6 +514,7 @@ class Dataset:
             dog.normalize(norm_type.value)
 
     def loadImg(self) -> None:
+
         if self.dir_img is None:
             raise Exception('Directory of pet images is not set')
 
@@ -443,6 +536,7 @@ class Dataset:
                 self.__dogs_training.append(obj_pet)
 
     def loadXml(self) -> None:
+
         if self.dir_xml is None:
             raise Exception('Directory of xmls is not set')
 
@@ -452,7 +546,7 @@ class Dataset:
         if self.dir_trimap is None:
             raise Exception('Directory of pet trimaps is not set')
 
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
 
         files_xml = glob.glob(os.path.join(self.dir_xml, '*.xml'))
 
@@ -465,9 +559,10 @@ class Dataset:
             else:
                 self.__dogs_training.append(obj_pet)
 
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def __createDatasetFromTxtFile(self, cats: list, dogs: list, file_dataset: pathlib.Path) -> None:
+
         if self.dir_xml is None:
             raise Exception('Directory of xmls is not set')
 
@@ -477,7 +572,7 @@ class Dataset:
         if self.dir_trimap is None:
             raise Exception('Directory of pet trimaps is not set')
 
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
 
         csv_file = open(file_dataset)
         csv_reader = csv.reader(csv_file, delimiter=' ')
@@ -515,25 +610,28 @@ class Dataset:
             print('Dataset contains:')
             print(' samples %d \n samples+ (cat) %5d (%.2f %%) \n samples- (dog) %5d (%.2f %%)' % (npets, ncats, pcats, ndogs, pdogs))
 
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def loadTrainingDataset(self) -> None:
+
         if self.file_training is None:
             raise Exception('File of training samples is not set')
 
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
         self.__createDatasetFromTxtFile(self.__cats_training, self.__dogs_training, self.file_training)
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def loadTestDataset(self) -> None:
+
         if self.file_training is None:
             raise Exception('File of test samples is not set')
 
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
         self.__createDatasetFromTxtFile(self.__cats_test, self.__dogs_test, self.file_test)
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def __mkdirOutput(self, dataset_type: DatasetType) -> pathlib.Path:
+
         if self.output_dir is not None:
             output_dir = os.path.join(self.output_dir, dataset_type.value)
         else:
@@ -545,12 +643,14 @@ class Dataset:
         return output_dir
 
     def __imgWrite(self, img: np.ndarray, name: str, ext: FORMAT, output_dir=''):
+
         p = name + '.%s' % ext.value
         if self.output_dir is not None or self.output_dir != '':
             p = os.path.join(output_dir, p)
         opencv.imwrite(p, img)
 
     def __scaleImg(self, img: np.ndarray, shape: list) -> np.ndarray:
+
         if img.shape[0] / img.shape[1] >= shape[0] / shape[1]:
             ratio = shape[0] / img.shape[0]
         else:
@@ -561,6 +661,7 @@ class Dataset:
         return img_resized
 
     def __fitImgShape(self, img_input: np.ndarray, shape) -> np.ndarray:
+
         img_colored = imgIsColored(img_input)
 
         if img_colored:
@@ -591,10 +692,11 @@ class Dataset:
         return tmp_img
 
     def __determineShapeStat(self, cats: list, dogs: list) -> list:
-        shape = [0, 0]
 
+        shape = [0, 0]
         row_dims = cats[-1][0]
         col_dims = cats[-1][1]
+
         # TODO one class
         if dogs:
             row_dims.extend(dogs[-1][0])
@@ -621,6 +723,7 @@ class Dataset:
         return shape
 
     def __createLabelList(self, ncats, ndogs) -> list:
+
         if ncats > 0:
             labels_cat = [PetFamily.CAT.value] * ncats
         else:
@@ -632,11 +735,12 @@ class Dataset:
         return labels_cat + labels_dog
 
     def __getImg_ListArray(self, pets, get_mask=False, get_dims=False) -> (list, Union[list, None]):
+
         dataset = []
         list_rows = []
         list_cols = []
 
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
         for pet in pets:
             pet.fg_include_border = self.fg_include_border
             out = pet.getImg(foreground=self.extract_foreground, roi=self.img_roi, get_mask=get_mask)
@@ -651,7 +755,7 @@ class Dataset:
             if get_dims:
                 list_rows.append(img.shape[0])
                 list_cols.append(img.shape[1])
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         if get_dims:
             return dataset, [list_rows, list_cols]
@@ -660,6 +764,7 @@ class Dataset:
 
     # TODO rename writeImgs
     def __writeImgs(self, cats: list, dogs: list, ext: FORMAT, output_dir: pathlib.Path, shape=None):
+
         for cat in cats:
             if shape is not None:
                 img_fitted = self.__fitImgShape(cat[0], shape)
@@ -679,7 +784,8 @@ class Dataset:
                 self.__imgWrite(dog[0], dog[1], ext, output_dir)
 
     def __saveImgs_ImageFileFormat(self, cats: list, dogs: list, ext: FORMAT, output_dir: pathlib.Path):
-        Sys.FUNCTION_TRACE_BEGIN()
+
+        mlsys.FUNCTION_TRACE_BEGIN()
 
         if self.img_transformation.value > -1 and not self.img_shape:
             get_dims = True
@@ -711,10 +817,11 @@ class Dataset:
             print('Image transformation: %s to dims=[%d, %d]' % (self.img_transformation.name, shape[0], shape[1]))
 
         self.__writeImgs(img_cats, img_dogs, ext, output_dir, shape)
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def __getImg_NumpyArray(self, cats: list, dogs: list) -> (np.ndarray, np.ndarray):
-        Sys.FUNCTION_TRACE_BEGIN()
+
+        mlsys.FUNCTION_TRACE_BEGIN()
         if self.img_transformation.value > -1 and not self.img_shape:
             get_dims = True
         else:
@@ -780,13 +887,14 @@ class Dataset:
         del out_cats, out_dogs
         del labels
 
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         return rows, np_labels
 
     def __saveImg_HDF5(self, cats: list, dogs: list, viewer):
+
         # TODO fit all time
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
 
         if self.verbose:
             print('Output directory: %s' % viewer.output_dir)
@@ -799,10 +907,11 @@ class Dataset:
 
         del rows, labels
 
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
-    def __extractFeatures_getDescriptors(self, pets: list, feature_extractor: VisualFeatureExtractor, shape=None) -> (np.ndarray, np.ndarray):
-        Sys.FUNCTION_TRACE_BEGIN()
+    def __extractFeatures_getDescriptors(self, pets: list, feature_extractor: VisualFeatureExtractor, shape=None) -> tuple[np.ndarray, ...]:
+
+        mlsys.FUNCTION_TRACE_BEGIN()
         desc_pet = []
         ndesc_pet = []
 
@@ -829,15 +938,16 @@ class Dataset:
         else:
             np_desc_pet = np.empty(shape=(0,))
             np_ndesc_pet = np.empty(shape=(0,))
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         return np_desc_pet, np_ndesc_pet
 
     def __extractFeatures_Train_VisualDictionary(self, descriptors: np.ndarray):
+
         if self.__cbtrained:
             return
 
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
         del self.__visual_dictionary  # TODO reset?
         self.__visual_dictionary = VisualDictionary(verbose=self.verbose)
 
@@ -847,13 +957,14 @@ class Dataset:
         self.__visual_dictionary.train()  # TODO or fit?
 
         self.__cbtrained = True
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def __extractFeatures_Fit(self, desc_pet: np.ndarray, ndesc_pet: np.ndarray) -> list:
+
         if desc_pet is None or ndesc_pet is None:
             return []
 
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
         if not self.__cbtrained:
             self.__extractFeatures_Train_VisualDictionary()
 
@@ -864,13 +975,13 @@ class Dataset:
             end = start + ndesc_pet[i]
             feature_pet = self.__visual_dictionary.fit(desc_pet[start:end])
             rows.append(feature_pet)
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         return rows
 
     def __extractFeatures_TrainFit(self, desc_cat: np.ndarray, ndesc_cat: np.ndarray,
                                          desc_dog: np.ndarray, ndesc_dog: np.ndarray) -> list:
-        Sys.FUNCTION_TRACE_BEGIN()
+        mlsys.FUNCTION_TRACE_BEGIN()
 
         descriptors = vstackNumpyArrays((desc_cat, desc_dog))
         self.__extractFeatures_Train_VisualDictionary(descriptors)
@@ -879,12 +990,13 @@ class Dataset:
         features_cat = self.__extractFeatures_Fit(desc_cat, ndesc_cat)
         features_dog = self.__extractFeatures_Fit(desc_dog, ndesc_dog)
         rows = features_cat + features_dog
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         return rows
 
     def __extractFeatures_Get(self, cats: list, dogs: list) -> (list, list):
-        Sys.FUNCTION_TRACE_BEGIN()
+
+        mlsys.FUNCTION_TRACE_BEGIN()
         feature_extractor = VisualFeatureExtractor(self.xfeature_type, self.verbose)
 
         if self.xfeature_type == FeatureExtractorType.SURF or FeatureExtractorType.DEFAULT:
@@ -954,22 +1066,24 @@ class Dataset:
         del out_cats, out_dogs
         del labels
 
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         return rows, np_labels
 
     def __extractFeatures_Save(self, cats: list, dogs: list, viewer):
-        Sys.FUNCTION_TRACE_BEGIN()
+
+        mlsys.FUNCTION_TRACE_BEGIN()
 
         # save result to HDF5
         rows, labels = self.__extractFeatures_Get(cats, dogs)
         viewer.output_dir = self.output_dir
         viewer.save(rows, labels, mat_type=FeaturesType.SPARSE)
 
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def getTrainingDataset(self) -> (Union[list, np.ndarray], np.ndarray):
-        Sys.FUNCTION_TRACE_BEGIN()
+
+        mlsys.FUNCTION_TRACE_BEGIN()
         del self.img_shape
         self.img_shape = None
 
@@ -978,24 +1092,25 @@ class Dataset:
             rows, labels = self.__extractFeatures_Get(self.__cats_training, self.__dogs_training)
         else:
             rows, labels = self.__getImg_NumpyArray(self.__cats_training, self.__dogs_training)
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         return rows, labels
 
     def getTestDataset(self) -> (Union[list, np.ndarray], np.ndarray):
-        Sys.FUNCTION_TRACE_BEGIN()
+
+        mlsys.FUNCTION_TRACE_BEGIN()
         if self.extract_features:
             rows, labels = self.__extractFeatures_Get(self.__cats_test, self.__dogs_test)
         else:
             rows, labels = self.__getImg_NumpyArray(self.__cats_test, self.__dogs_test)
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
         return rows, labels
 
     def saveTrainingDataset(self, ext=FORMAT.HDF5):
-        Sys.FUNCTION_TRACE_BEGIN()
 
-        del self.img_shape
+        mlsys.FUNCTION_TRACE_BEGIN()
+        if self.img_shape is not None: del self.img_shape
         self.img_shape = None
 
         if self.extract_features or ext == FORMAT.HDF5:
@@ -1013,12 +1128,11 @@ class Dataset:
         else:
             output_dir = self.__mkdirOutput(DatasetType.TRAINING)
             self.__saveImgs_ImageFileFormat(self.__cats_training, self.__dogs_training, ext, output_dir)
-
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def saveTestDataset(self, ext=FORMAT.HDF5):
-        Sys.FUNCTION_TRACE_BEGIN()
 
+        mlsys.FUNCTION_TRACE_BEGIN()
         if self.extract_features or ext == FORMAT.HDF5:
             viewer_h5 = ViewerHDF5()
             viewer_h5.output_dir = self.output_dir
@@ -1033,16 +1147,14 @@ class Dataset:
         else:
             output_dir = self.__mkdirOutput(DatasetType.TEST)
             self.__saveImgs_ImageFileFormat(self.__cats_test, self.__dogs_test, ext, output_dir)
-
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
     def save(self, ext=FORMAT.HDF5):
-        Sys.FUNCTION_TRACE_BEGIN()
 
+        mlsys.FUNCTION_TRACE_BEGIN()
         self.saveTrainingDataset(ext)
         self.saveTestDataset(ext)
-
-        Sys.FUNCTION_TRACE_END()
+        mlsys.FUNCTION_TRACE_END()
 
 # TODO feature extraction setting params
 # TODO SVMLight format, PETSc bin?
