@@ -40,7 +40,7 @@ def FUNCTION_TRACE_BEGIN():
         print('%s%d BEGIN FUNCTION %s' % (tab, func_call_counter, func_name))
 
     func_call_counter += 1
-    func_tracing_execution_times.append(time.process_time())
+    func_tracing_execution_times.append(time.time())
 
 
 def FUNCTION_TRACE_END():
@@ -50,7 +50,7 @@ def FUNCTION_TRACE_END():
     global func_call_counter
     global func_tracing_execution_times
 
-    time_elapsed = time.process_time() - func_tracing_execution_times[-1]
+    time_elapsed = time.time() - func_tracing_execution_times[-1]
 
     func_call_counter -= 1
     tab = func_call_counter * ' '
