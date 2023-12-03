@@ -1073,12 +1073,10 @@ class Dataset(object):
     def __extractFeatures_Save(self, cats: list, dogs: list, viewer):
 
         mlsys.FUNCTION_TRACE_BEGIN()
-
         # save result to HDF5
         rows, labels = self.__extractFeatures_Get(cats, dogs)
         viewer.output_dir = self.output_dir
         viewer.save(rows, labels, mat_type=FeaturesType.SPARSE)
-
         mlsys.FUNCTION_TRACE_END()
 
     def getTrainingDataset(self) -> (Union[list, np.ndarray], np.ndarray):
@@ -1107,7 +1105,7 @@ class Dataset(object):
 
         return rows, labels
 
-    def saveTrainingDataset(self, ext=FORMAT.HDF5):
+    def saveTrainingDataset(self, fn: str, ext=FORMAT.HDF5, mat_type=FeaturesType.SPARSE):
 
         mlsys.FUNCTION_TRACE_BEGIN()
         if self.img_shape is not None: del self.img_shape
@@ -1116,7 +1114,8 @@ class Dataset(object):
         if self.extract_features or ext == FORMAT.HDF5:
             viewer_h5 = ViewerHDF5()
             viewer_h5.output_dir = self.output_dir
-            viewer_h5.basename = DatasetType.TRAINING.value
+            viewer_h5.basename = fn
+            viewer_h5.feature_type = mat_type
 
             if self.extract_features:
                 self.__cbtrained = False
@@ -1130,13 +1129,14 @@ class Dataset(object):
             self.__saveImgs_ImageFileFormat(self.__cats_training, self.__dogs_training, ext, output_dir)
         mlsys.FUNCTION_TRACE_END()
 
-    def saveTestDataset(self, ext=FORMAT.HDF5):
+    def saveTestDataset(self, fn: str, ext=FORMAT.HDF5, mat_type=FeaturesType.SPARSE):
 
         mlsys.FUNCTION_TRACE_BEGIN()
         if self.extract_features or ext == FORMAT.HDF5:
             viewer_h5 = ViewerHDF5()
             viewer_h5.output_dir = self.output_dir
-            viewer_h5.basename = DatasetType.TEST.value
+            viewer_h5.basename = fn
+            viewer_h5.feature_type = mat_type
 
             if self.extract_features:
                 self.__extractFeatures_Save(self.__cats_test, self.__dogs_test, viewer_h5)
@@ -1149,11 +1149,11 @@ class Dataset(object):
             self.__saveImgs_ImageFileFormat(self.__cats_test, self.__dogs_test, ext, output_dir)
         mlsys.FUNCTION_TRACE_END()
 
-    def save(self, ext=FORMAT.HDF5):
+    def save(self, ext=FORMAT.HDF5, mat_type=FeaturesType.DENSE):
 
         mlsys.FUNCTION_TRACE_BEGIN()
-        self.saveTrainingDataset(ext)
-        self.saveTestDataset(ext)
+        self.saveTrainingDataset(fn='train', ext=ext, mat_type=mat_type)
+        self.saveTestDataset(fn='test', ext=ext, mat_type=mat_type)
         mlsys.FUNCTION_TRACE_END()
 
 # TODO feature extraction setting params

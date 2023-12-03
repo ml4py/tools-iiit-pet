@@ -1,14 +1,18 @@
 import os
 import pathlib
 
-import numpy as np
 import h5py
-import hdf5storage as h5storage
-
 import mlpet.utils.sys as mlsys
 
 from typing import Union
+
+# import utils
 from mlpet.utils.types import FeaturesType
+from mlpet.utils.functools import lazy_import
+
+# lazy import
+np = lazy_import('numpy')
+io_h5py = lazy_import('h5py')
 
 
 class ViewerHDF5:
@@ -95,10 +99,20 @@ class ViewerHDF5:
     @staticmethod
     def __saveDenseFeaturesDataset(rows: np.ndarray, labels: np.ndarray, path: pathlib.Path) -> None:
 
+        str_type = 'double'
+        attr_name = 'MATLAB_class'
+
         mlsys.FUNCTION_TRACE_BEGIN()
-        content = {'X': rows, 'y': labels}
-        # this is extremely slow and memory consuming
-        h5storage.write(content, filename=path,  matlab_compatible=True, store_python_metadata=False)
+        with io_h5py.File(path, 'w') as hf:
+            im_features = np.transpose(rows)
+
+            # store matrix of feature vectors
+            hfds = hf.create_dataset('X', shape=im_features.shape, dtype=np.float64, data=im_features)
+            ascii_type = io_h5py.string_dtype('ascii', 6)
+            hfds.attrs[attr_name] = np.array(str_type.encode('ascii'), dtype=ascii_type)
+
+            # store labels
+            hf.create_dataset('y', shape=labels.shape, dtype=np.float64, data=labels)
         mlsys.FUNCTION_TRACE_END()
 
     def save(self, rows: Union[list, np.ndarray], labels: Union[list, np.ndarray], mat_type=FeaturesType.DENSE) -> None:
